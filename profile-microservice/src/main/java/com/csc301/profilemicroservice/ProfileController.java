@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.csc301.profilemicroservice.Utils;
+import com.csc301.profilemicroservice.exceptions.FourHundredException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import okhttp3.Call;
@@ -49,11 +50,22 @@ public class ProfileController {
 	@RequestMapping(value = "/profile", method = RequestMethod.POST)
 	public @ResponseBody Map<String, Object> addProfile(@RequestParam Map<String, String> params,
 			HttpServletRequest request) {
-
+		
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("path", String.format("POST %s", Utils.getUrl(request)));
-
-		return null;
+		
+		try {
+			if (params.get(KEY_USER_NAME).isEmpty() || params.get(KEY_USER_FULLNAME).isEmpty() || params.get(KEY_USER_PASSWORD).isEmpty()) {
+				throw new FourHundredException();
+			}
+			DbQueryStatus dbQueryStatus = profileDriver.createUserProfile(params.get(KEY_USER_NAME), params.get(KEY_USER_FULLNAME), params.get(KEY_USER_PASSWORD));
+			response.put("message", dbQueryStatus.getMessage());
+			response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+		} catch(Exception e) {
+			response.put("message", "Error");
+			response = Utils.setResponseStatus(response, DbQueryExecResult.QUERY_ERROR_GENERIC, null);
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/followFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
