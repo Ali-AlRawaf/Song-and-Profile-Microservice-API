@@ -54,16 +54,12 @@ public class ProfileController {
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("path", String.format("POST %s", Utils.getUrl(request)));
 		
-		try {
-			if (params.get(KEY_USER_NAME).isEmpty() || params.get(KEY_USER_FULLNAME).isEmpty() || params.get(KEY_USER_PASSWORD).isEmpty()) {
-				throw new FourHundredException();
-			}
+		if (params.get(KEY_USER_NAME) == null || params.get(KEY_USER_FULLNAME) == null || params.get(KEY_USER_PASSWORD) == null) {
+			response = Utils.setResponseStatus(response, DbQueryExecResult.QUERY_ERROR_GENERIC, null);
+		} else {
 			DbQueryStatus dbQueryStatus = profileDriver.createUserProfile(params.get(KEY_USER_NAME), params.get(KEY_USER_FULLNAME), params.get(KEY_USER_PASSWORD));
 			response.put("message", dbQueryStatus.getMessage());
 			response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
-		} catch(Exception e) {
-			response.put("message", "Error");
-			response = Utils.setResponseStatus(response, DbQueryExecResult.QUERY_ERROR_GENERIC, null);
 		}
 		return response;
 	}
@@ -71,11 +67,14 @@ public class ProfileController {
 	@RequestMapping(value = "/followFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
 	public @ResponseBody Map<String, Object> followFriend(@PathVariable("userName") String userName,
 			@PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
-
+		
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 		
-		return null;
+		DbQueryStatus dbQueryStatus = profileDriver.followFriend(userName, friendUserName);
+		response.put("message", dbQueryStatus.getMessage());
+		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+		return response;
 	}
 
 	@RequestMapping(value = "/getAllFriendFavouriteSongTitles/{userName}", method = RequestMethod.GET)
