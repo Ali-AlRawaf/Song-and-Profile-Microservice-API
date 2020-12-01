@@ -56,6 +56,7 @@ public class ProfileController {
 		
 		if (params.get(KEY_USER_NAME) == null || params.get(KEY_USER_FULLNAME) == null || params.get(KEY_USER_PASSWORD) == null) {
 			response = Utils.setResponseStatus(response, DbQueryExecResult.QUERY_ERROR_GENERIC, null);
+			response.put("message", "Bad");
 		} else {
 			DbQueryStatus dbQueryStatus = profileDriver.createUserProfile(params.get(KEY_USER_NAME), params.get(KEY_USER_FULLNAME), params.get(KEY_USER_PASSWORD));
 			response.put("message", dbQueryStatus.getMessage());
