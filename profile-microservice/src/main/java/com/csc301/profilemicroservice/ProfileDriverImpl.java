@@ -35,27 +35,48 @@ public class ProfileDriverImpl implements ProfileDriver {
 	
 	@Override
 	public DbQueryStatus createUserProfile(String userName, String fullName, String password) {
-	     try (Session session = ProfileMicroserviceApplication.driver.session()){
-	            try (Transaction tx = session.beginTransaction()) {   	
-	            	int userNameResult = tx.run("MATCH (n:nProfile {userName: $x}) RETURN n" , Values.parameters("x", userName )).list().size();
-	            	if (userNameResult == 0){
-		                tx.run("MERGE (a:nProfile {userName: $x, fullName: $y, password: $y})", Values.parameters("x", userName, "y", fullName, "z", password));
-		                tx.run("MERGE (a:playlist {plName: $x})", Values.parameters("x", userName +"-favorites"));
-	                    tx.run("MATCH (a:nProfile {userName: $x}),(p:playlist {plName: $y})\n" +  "MERGE (a)-[:created]->(p)", Values.parameters("x", userName, "y", userName +"-favorites"));	
-	            		tx.success();
-	                    session.close();   
-	                } else {
-	                	return new DbQueryStatus("UserName already exist", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);
-	                } 	
-	            }
-	        }
-     	return new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+		try {
+		     try (Session session = ProfileMicroserviceApplication.driver.session()){
+		            try (Transaction tx = session.beginTransaction()) {   	
+		            	int userNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", userName )).list().size();
+		            	if (userNameResult == 0){
+			                tx.run("MERGE (a:profile {userName: $x, fullName: $y, password: $y})", Values.parameters("x", userName, "y", fullName, "z", password));
+			                tx.run("MERGE (a:playlist {plName: $x})", Values.parameters("x", userName +"-favorites"));
+		                    tx.run("MATCH (a:profile {userName: $x}),(p:playlist {plName: $y})\n" +  "MERGE (a)-[:created]->(p)", Values.parameters("x", userName, "y", userName +"-favorites"));	
+		            		tx.success();
+		                    session.close();   
+		                } else {
+		                	return new DbQueryStatus("UserName already exist", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);
+		                } 	
+		            }
+		        }
+	     	return new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+		} catch(Exception e){
+		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		}	
 	}
 
 	@Override
-	public DbQueryStatus followFriend(String userName, String frndUserName) {
-		
-		return null;
+	public DbQueryStatus followFriend(String userName, String frndUserName) {	
+		try {
+		     try (Session session = ProfileMicroserviceApplication.driver.session()){
+		            try (Transaction tx = session.beginTransaction()) {   	
+		            	int userNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", userName )).list().size();
+		            	int frndUserNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", frndUserName )).list().size();
+
+		            	if (userNameResult == 0 || frndUserNameResult == 0){
+		                	return new DbQueryStatus("One of the users does not exist", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);   
+		                } else {
+		                    tx.run("MATCH (a:profile {userName: $x}),(b:profile {userName: $y})\n" +  "MERGE (a)-[:follows]->(b)", Values.parameters("x", userName, "y", frndUserName));	
+		            		tx.success();
+		                    session.close();	       
+		                 } 	
+		            }
+		        }
+		     return new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+		} catch(Exception e) {
+		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		}	
 	}
 
 	@Override
