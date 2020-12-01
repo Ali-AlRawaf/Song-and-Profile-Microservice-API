@@ -2,7 +2,7 @@ package com.csc301.profilemicroservice;
 
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
-
+import org.neo4j.driver.v1.StatementResult;
 import org.springframework.stereotype.Repository;
 
 import org.neo4j.driver.v1.Transaction;
@@ -80,9 +80,27 @@ public class ProfileDriverImpl implements ProfileDriver {
 	}
 
 	@Override
-	public DbQueryStatus unfollowFriend(String userName, String frndUserName) {
-		
-		return null;
+	public DbQueryStatus unfollowFriend(String userName, String frndUserName) {	
+		try {
+		     try (Session session = ProfileMicroserviceApplication.driver.session()){
+		            try (Transaction tx = session.beginTransaction()) {   	
+		            	int userNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", userName )).list().size();
+		            	int frndUserNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", frndUserName )).list().size();
+		            	int hasRelationshipResult = tx.run("MATCH (a:profile {userName: $x})-[r:follows]->(b:profile {userName: $y}) RETURN r", Values.parameters("x", userName, "y", frndUserName)).list().size();
+
+		            	if (userNameResult == 0 || frndUserNameResult == 0 || hasRelationshipResult == 0){
+		                	return new DbQueryStatus("One of the users does not exist, or userName isnt following frndUserName", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);   
+		                } else {
+		                    tx.run("MATCH (a:profile {userName: $x})-[r:follows]->(b:profile {userName: $y}) DELETE r", Values.parameters("x", userName, "y", frndUserName));	
+		            		tx.success();
+		                    session.close();	       
+		                 } 	
+		            }
+		        }
+		     return new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+		} catch(Exception e) {
+		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		}
 	}
 
 	@Override
