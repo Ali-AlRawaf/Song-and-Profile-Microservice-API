@@ -47,8 +47,23 @@ public class SongDalImpl implements SongDal {
 
 	@Override
 	public DbQueryStatus getSongTitleById(String songId) {
-		// TODO Auto-generated method stub
-		return null;
+		try {	     	
+    		Document queryDoc = new Document();
+    		queryDoc.put("_id", new ObjectId(songId));
+			Document resDoc = (Document) db.getCollection("songs").find(queryDoc).first();
+			
+			if(resDoc == null) {
+            	return new DbQueryStatus("No user with such id exist", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);   
+			}
+
+			DbQueryStatus sucuess = new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+			sucuess.setData(resDoc.get(Song.KEY_SONG_NAME));
+
+	     	return sucuess;
+
+		} catch(Exception e){
+		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		}
 	}
 
 	@Override
