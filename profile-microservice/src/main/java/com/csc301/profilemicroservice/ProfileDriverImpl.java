@@ -64,8 +64,8 @@ public class ProfileDriverImpl implements ProfileDriver {
 		            	int userNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", userName )).list().size();
 		            	int frndUserNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", frndUserName )).list().size();
 
-		            	if (userNameResult == 0 || frndUserNameResult == 0){
-		                	return new DbQueryStatus("One of the users does not exist", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);   
+		            	if (userNameResult == 0 || frndUserNameResult == 0 || userName.equals(frndUserName)){
+		                	return new DbQueryStatus("One of the users does not exist, or both are the same user", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);   
 		                } else {
 		                    tx.run("MATCH (a:profile {userName: $x}),(b:profile {userName: $y})\n" +  "MERGE (a)-[:follows]->(b)", Values.parameters("x", userName, "y", frndUserName));	
 		            		tx.success();
