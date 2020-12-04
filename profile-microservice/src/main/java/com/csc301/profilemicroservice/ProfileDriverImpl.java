@@ -40,7 +40,7 @@ public class ProfileDriverImpl implements ProfileDriver {
 		            try (Transaction tx = session.beginTransaction()) {   	
 		            	int userNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", userName )).list().size();
 		            	if (userNameResult == 0){
-			                tx.run("MERGE (a:profile {userName: $x, fullName: $y, password: $y})", Values.parameters("x", userName, "y", fullName, "z", password));
+			                tx.run("MERGE (a:profile {userName: $x, fullName: $y, password: $z})", Values.parameters("x", userName, "y", fullName, "z", password));
 			                tx.run("MERGE (a:playlist {plName: $x})", Values.parameters("x", userName +"-favorites"));
 		                    tx.run("MATCH (a:profile {userName: $x}),(p:playlist {plName: $y})\n" +  "MERGE (a)-[:created]->(p)", Values.parameters("x", userName, "y", userName +"-favorites"));	
 		            		tx.success();
