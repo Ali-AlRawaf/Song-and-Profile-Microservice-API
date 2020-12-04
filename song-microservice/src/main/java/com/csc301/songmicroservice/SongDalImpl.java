@@ -89,7 +89,42 @@ public class SongDalImpl implements SongDal {
 
 	@Override
 	public DbQueryStatus updateSongFavouritesCount(String songId, boolean shouldDecrement) {
-		// TODO Auto-generated method stub
-		return null;
+		try {	     	
+    		Document queryDoc = new Document();
+    		queryDoc.put("_id", new ObjectId(songId));
+			Document resDoc = (Document) db.getCollection("songs").find(queryDoc).first();
+			
+			if(resDoc == null) {
+            	return new DbQueryStatus("No user with such id exist", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);   
+			}
+			
+			long original = (long) resDoc.get("songAmountFavourites");
+			
+			if ((long) resDoc.get("songAmountFavourites") == 0 && shouldDecrement) {
+            	return new DbQueryStatus("Cant make less than zero", DbQueryExecResult.QUERY_ERROR_GENERIC);   
+			}
+			
+			long newVal;
+			if(shouldDecrement) {
+				newVal = original-1;
+			} else {
+				newVal = original+1;
+			}
+			
+    		Document newDoc = new Document();
+    		newDoc.put("_id", new ObjectId(songId));
+
+    		newDoc.put(Song.KEY_SONG_NAME, resDoc.get(Song.KEY_SONG_NAME));
+    		newDoc.put(Song.KEY_SONG_ALBUM, resDoc.get(Song.KEY_SONG_ALBUM));
+    		newDoc.put(Song.KEY_SONG_ARTIST_FULL_NAME, resDoc.get(Song.KEY_SONG_ARTIST_FULL_NAME));
+    	
+    		newDoc.put("songAmountFavourites", newVal);
+
+			db.getCollection("songs").replaceOne(queryDoc, newDoc);
+
+	     	return new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+		} catch(Exception e){
+		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		}
 	}
 }

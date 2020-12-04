@@ -108,7 +108,22 @@ public class SongController {
 
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("data", String.format("PUT %s", Utils.getUrl(request)));
-
-		return null;
+		if(!shouldDecrement.equals("true") && !shouldDecrement.equals("false")) {
+			response = Utils.setResponseStatus(response, DbQueryExecResult.QUERY_ERROR_GENERIC, null);
+			response.put("message", "Bad");
+			return response;
+		}
+		
+		try {
+			boolean bool = Boolean.parseBoolean(shouldDecrement);
+			
+			DbQueryStatus dbQueryStatus = songDal.updateSongFavouritesCount(songId, bool);
+			response.put("message", dbQueryStatus.getMessage());
+			response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+		} catch(Exception e) {
+			response = Utils.setResponseStatus(response, DbQueryExecResult.QUERY_ERROR_GENERIC, null);
+			response.put("message", "Bad");
+		}
+		return response;
 	}
 }
