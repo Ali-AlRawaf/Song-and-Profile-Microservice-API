@@ -135,7 +135,6 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 						tx.run("MERGE (s:song {songId: $x})", Values.parameters("x", songId));
 					} else {
 						int songInPlaylistResult = tx.run("MATCH (:profile {userName: $x})-[:created]->(:playlist)-[r:includes]->(:song {songId: $y}) RETURN r", Values.parameters("x", userName, "y", songId)).list().size();
-						System.out.print(songInPlaylistResult + "\n");
 						if(songInPlaylistResult != 0) songWasInPlaylist = true; 
 					}
 					
@@ -212,7 +211,20 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 	*/
 	@Override
 	public DbQueryStatus deleteSongFromDb(String songId) {
-		
-		return null;
+		try {
+		    try (Session session = ProfileMicroserviceApplication.driver.session()){
+				try (Transaction tx = session.beginTransaction()) {
+					//delete relationships, then song itself
+					tx.run("MATCH (:playlist)-[r:includes]->(:song {songId: $x}) DELETE r", Values.parameters("x", songId));	
+					tx.run("MATCH (s:song {songId: $x}) DELETE s", Values.parameters("x", songId));	
+					tx.success();
+					session.close();
+				}
+		    }
+		    return new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+		} catch(Exception e) {
+			e.printStackTrace();
+		    return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		}
 	}
 }
