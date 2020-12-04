@@ -1,18 +1,29 @@
 package com.csc301.songmicroservice;
 
+import java.io.IOException;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
-
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
+import okhttp3.Call;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 @Repository
 public class SongDalImpl implements SongDal {
 
 	private final MongoTemplate db;
+	
+	private OkHttpClient client = new OkHttpClient();
 
 	@Autowired
 	public SongDalImpl(MongoTemplate mongoTemplate) {
@@ -83,8 +94,46 @@ public class SongDalImpl implements SongDal {
 
 	@Override
 	public DbQueryStatus deleteSongById(String songId) {
-		// TODO Auto-generated method stub
-		return null;
+		try {	     	
+    		Document queryDoc = new Document();
+    		queryDoc.put("_id", new ObjectId(songId));
+			Document resDoc = (Document) db.getCollection("songs").findOneAndDelete(queryDoc);
+			
+			if(resDoc == null) {
+            	return new DbQueryStatus("No song with such id exist", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);   
+			}
+			
+			HttpUrl.Builder urlBuilder = HttpUrl.parse("http://localhost:3002" + "/deleteAllSongsFromDb/" + songId).newBuilder();
+			String url = urlBuilder.build().toString();
+			
+			RequestBody body = RequestBody.create(null, new byte[0]);
+			
+			Request request = new Request.Builder()
+					.url(url)
+					.method("PUT", body)
+					.build();
+
+			Call call = client.newCall(request);
+			Response responseFromSongMs = null;
+
+			try {
+				responseFromSongMs = call.execute();
+				String b = responseFromSongMs.body().string();
+				responseFromSongMs.close();
+				JSONObject deserialized = new JSONObject(b);
+		        String status = deserialized.getString("status");
+				if(status.toString().equals("OK")) {
+					return new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+				}
+				return new DbQueryStatus(status.toString(), DbQueryExecResult.QUERY_ERROR_GENERIC);
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw e;
+			}
+		} catch(Exception e){
+			 e.printStackTrace();
+		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		}
 	}
 
 	@Override

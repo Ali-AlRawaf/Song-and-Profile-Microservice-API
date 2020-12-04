@@ -15,11 +15,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import okhttp3.Call;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
@@ -29,9 +24,6 @@ public class SongController {
 	@Autowired
 	private final SongDal songDal;
 
-	private OkHttpClient client = new OkHttpClient();
-
-	
 	public SongController(SongDal songDal) {
 		this.songDal = songDal;
 	}
@@ -76,7 +68,12 @@ public class SongController {
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("path", String.format("DELETE %s", Utils.getUrl(request)));
 
-		return null;
+		DbQueryStatus dbQueryStatus = songDal.deleteSongById(songId);
+		
+		response.put("message", dbQueryStatus.getMessage());
+		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+		
+		return response;
 	}
 
 	
