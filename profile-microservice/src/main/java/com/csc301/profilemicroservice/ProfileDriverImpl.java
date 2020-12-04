@@ -13,6 +13,10 @@ public class ProfileDriverImpl implements ProfileDriver {
 
 	Driver driver = ProfileMicroserviceApplication.driver;
 
+	/**
+	* Initlaize Profile Db
+	* @return  void
+	*/
 	public static void InitProfileDb() {
 		String queryStr;
 
@@ -33,6 +37,13 @@ public class ProfileDriverImpl implements ProfileDriver {
 		}
 	}
 	
+	/**
+	* Add user to db and return status
+	* @param  userName  a string of the desired username
+	* @param  fullName  a string of the desired fullname
+	* @param  password  a string of the desired password
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@Override
 	public DbQueryStatus createUserProfile(String userName, String fullName, String password) {
 		try {
@@ -55,7 +66,13 @@ public class ProfileDriverImpl implements ProfileDriver {
 		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
 		}	
 	}
-
+	
+	/**
+	* Create a :follows relation between the given users and return status
+	* @param  userName  a string of the desired username (the user following)
+	* @param  frndUserName  a string of the desired frndUserName (the user being followed)
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@Override
 	public DbQueryStatus followFriend(String userName, String frndUserName) {	
 		try {
@@ -79,6 +96,12 @@ public class ProfileDriverImpl implements ProfileDriver {
 		}	
 	}
 
+	/**
+	* Delete a :follows relation between the given users and return status
+	* @param  userName  a string of the desired username (the user following)
+	* @param  frndUserName  a string of the desired frndUserName (the user being followed)
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@Override
 	public DbQueryStatus unfollowFriend(String userName, String frndUserName) {	
 		try {
@@ -103,6 +126,11 @@ public class ProfileDriverImpl implements ProfileDriver {
 		}
 	}
 
+	/**
+	* Returns a list of all the songs that every friend of username likes inside dbquerydata
+	* @param  userName  a string of the desired username (the user following)
+	* @return  DbQueryStatus with OK status if operation is success and all songs in the playlist of every user userName follows, and not OK otherwise
+	*/
 	@Override
 	public DbQueryStatus getAllSongFriendsLike(String userName) {
 			

@@ -24,6 +24,10 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 	Driver driver = ProfileMicroserviceApplication.driver;
 	OkHttpClient client = new OkHttpClient();
 
+	/**
+	* Initlaize Playlist Db
+	* @return  void
+	*/
 	public static void InitPlaylistDb() {
 		String queryStr;
 
@@ -37,6 +41,12 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 		}
 	}
 	
+	
+	/**
+	* Return weather the given songid is valid and exist in the songs db
+	* @param  songId  a string of the desired songid (the one being followed)
+	* @return  Bool with true if song exist, and False otherwise
+	*/
 	private Boolean songIsValid(String songId) throws IOException {
 		HttpUrl.Builder urlBuilder = HttpUrl.parse("http://localhost:3001" + "/getSongById/" + songId).newBuilder();
 		String url = urlBuilder.build().toString();
@@ -62,6 +72,13 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 		}
 	}
 	
+	/**
+	* Does and api call to updateFavCount in the other microservice, return weather
+	* the call has passed or not
+	* @param  songId  a string of the desired songid (the one being followed)
+	* @param  shouldDecrement  a string of the desired behavior (true, or false)
+	* @return  Bool with true if success, false otherwise
+	*/
 	private Boolean updateFavoriteCount(String songId, String shouldDecrement) throws IOException {
 		HttpUrl.Builder urlBuilder = HttpUrl.parse("http://localhost:3001" + "/updateSongFavouritesCount/" + songId).newBuilder();
 		urlBuilder.addQueryParameter("shouldDecrement", shouldDecrement);
@@ -89,7 +106,13 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 			throw e;
 		}
 	}
-
+	
+	/**
+	* Adds a :includes relation between the given users playlist and the given songid and return status
+	* @param  userName  a string of the desired username (the user adding to playlist)
+	* @param  songId  a string of the desired songid (the one being followed)
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@Override
 	public DbQueryStatus likeSong(String userName, String songId) {
 		try {
@@ -137,7 +160,13 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 		    return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
 		}
 	}
-
+	
+	/**
+	* Removes an :includes relation between the given users playlist and the given songid and return status
+	* @param  userName  a string of the desired username (the user adding to playlist)
+	* @param  songId  a string of the desired songid (the one being followed)
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@Override
 	public DbQueryStatus unlikeSong(String userName, String songId) {
 		try {
@@ -176,6 +205,11 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 		}
 	}
 
+	/**
+	* Removes songid from db, and all relation connecting to it and return status
+	* @param  songId  a string of the desired songid (the one being followed)
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@Override
 	public DbQueryStatus deleteSongFromDb(String songId) {
 		

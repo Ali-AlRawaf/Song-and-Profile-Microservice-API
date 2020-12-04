@@ -46,7 +46,14 @@ public class ProfileController {
 		this.profileDriver = profileDriver;
 		this.playlistDriver = playlistDriver;
 	}
-
+	
+	
+	/**
+	* Add user to db and return status
+	* @param  params  a dictionary containing KEY_USER_NAME, KEY_USER_FULLNAME, KEY_USER_PASSWORD
+	* @param   request http API request
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@RequestMapping(value = "/profile", method = RequestMethod.POST)
 	public @ResponseBody Map<String, Object> addProfile(@RequestParam Map<String, String> params,
 			HttpServletRequest request) {
@@ -64,7 +71,14 @@ public class ProfileController {
 		}
 		return response;
 	}
-
+	
+	/**
+	* Create a :follows relation between the given users and return status
+	* @param  userName  a string of the desired username (the user following)
+	* @param  frndUserName  a string of the desired frndUserName (the user being followed)
+	* @param   request http API request
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@RequestMapping(value = "/followFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
 	public @ResponseBody Map<String, Object> followFriend(@PathVariable("userName") String userName,
 			@PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
@@ -77,7 +91,13 @@ public class ProfileController {
 		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
 		return response;
 	}
-
+	
+	/**
+	* Returns a list of all the songs that every friend of username likes inside dbquerydata
+	* @param  userName  a string of the desired username (the user following)
+	* @param   request http API request
+	* @return  DbQueryStatus with OK status if operation is success and all songs in the playlist of every user userName follows, and not OK otherwise
+	*/
 	@RequestMapping(value = "/getAllFriendFavouriteSongTitles/{userName}", method = RequestMethod.GET)
 	public @ResponseBody Map<String, Object> getAllFriendFavouriteSongTitles(@PathVariable("userName") String userName,
 			HttpServletRequest request) {
@@ -88,7 +108,13 @@ public class ProfileController {
 		return null;
 	}
 
-
+	/**
+	* Delete a :follows relation between the given users and return status
+	* @param  userName  a string of the desired username (the user following)
+	* @param  frndUserName  a string of the desired frndUserName (the user being followed)
+	* @param   request http API request
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@RequestMapping(value = "/unfollowFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
 	public @ResponseBody Map<String, Object> unfollowFriend(@PathVariable("userName") String userName,
 			@PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
@@ -102,6 +128,13 @@ public class ProfileController {
 		return response;
 	}
 
+	/**
+	* Adds a :includes relation between the given users playlist and the given songid and return status
+	* @param  userName  a string of the desired username (the user adding to playlist)
+	* @param  songId  a string of the desired songid (the one being followed)
+	* @param   request http API request
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@RequestMapping(value = "/likeSong/{userName}/{songId}", method = RequestMethod.PUT)
 	public @ResponseBody Map<String, Object> likeSong(@PathVariable("userName") String userName,
 			@PathVariable("songId") String songId, HttpServletRequest request) {
@@ -114,7 +147,14 @@ public class ProfileController {
 		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
 		return response;
 	}
-
+	
+	/**
+	* Removes an :includes relation between the given users playlist and the given songid and return status
+	* @param  userName  a string of the desired username (the user adding to playlist)
+	* @param  songId  a string of the desired songid (the one being followed)
+	* @param   request http API request
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@RequestMapping(value = "/unlikeSong/{userName}/{songId}", method = RequestMethod.PUT)
 	public @ResponseBody Map<String, Object> unlikeSong(@PathVariable("userName") String userName,
 			@PathVariable("songId") String songId, HttpServletRequest request) {
@@ -127,7 +167,12 @@ public class ProfileController {
 		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
 		return response;
 	}
-
+	/**
+	* Removes songid from db, and all relation connecting to it and return status
+	* @param  songId  a string of the desired songid (the one being followed)
+	* @param   request http API request
+	* @return  DbQueryStatus with OK status if operation is success, and not OK otherwise
+	*/
 	@RequestMapping(value = "/deleteAllSongsFromDb/{songId}", method = RequestMethod.PUT)
 	public @ResponseBody Map<String, Object> deleteAllSongsFromDb(@PathVariable("songId") String songId,
 			HttpServletRequest request) {
