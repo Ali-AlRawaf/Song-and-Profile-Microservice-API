@@ -93,6 +93,7 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 	@Override
 	public DbQueryStatus likeSong(String userName, String songId) {
 		try {
+			Boolean songWasInPlaylist = false;
 		    try (Session session = ProfileMicroserviceApplication.driver.session()){
 				try (Transaction tx = session.beginTransaction()) {   	
 					int userNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", userName )).list().size();
@@ -109,6 +110,10 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 					
 					if(songResult == 0) {
 						tx.run("MERGE (s:song {songId: $x})", Values.parameters("x", songId));
+					} else {
+						int songInPlaylistResult = tx.run("MATCH (:profile {userName: $x})-[:created]->(:playlist)-[r:includes]->(:song {songId: $y}) RETURN r", Values.parameters("x", userName, "y", songId)).list().size();
+						System.out.print(songInPlaylistResult + "\n");
+						if(songInPlaylistResult != 0) songWasInPlaylist = true; 
 					}
 					
 					tx.run("MATCH (u:profile {userName: $x})-[:created]->(p:playlist)\n"
@@ -118,11 +123,15 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 					session.close();
 				}
 		    }
-		    if(updateFavoriteCount(songId, "false")) {
-		    	return new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
-		    } else {
-		    	return new DbQueryStatus("Couldn't update favorite count for this song", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		    
+		    if(!songWasInPlaylist) {
+		    	if(!updateFavoriteCount(songId, "false")) {
+		    		return new DbQueryStatus("Couldn't update favorite count for this song", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		    	}
 		    }
+		    
+		    return new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+
 		} catch(Exception e) {
 			e.printStackTrace();
 		    return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
