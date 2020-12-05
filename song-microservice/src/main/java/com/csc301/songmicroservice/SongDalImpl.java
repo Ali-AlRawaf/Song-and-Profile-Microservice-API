@@ -29,7 +29,12 @@ public class SongDalImpl implements SongDal {
 	public SongDalImpl(MongoTemplate mongoTemplate) {
 		this.db = mongoTemplate;
 	}
-
+	
+	/**
+	* Creates and inserts a song document into the db, returning the document that was inserted
+	* @param  songToAdd  the Song object containing the song data to insert into the document
+	* @return  DbQueryStatus with song document, server response message and status of operation
+	*/
 	@Override
 	public DbQueryStatus addSong(Song songToAdd) {
 		try {
@@ -49,7 +54,12 @@ public class SongDalImpl implements SongDal {
 		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
 		}
 	}
-
+	
+	/**
+	* Finds and returns song with id songId if it exists, otherwise responds with status not found
+	* @param  songId  the song id of the wanted song
+	* @return  DbQueryStatus with song document, server response message and status of operation
+	*/
 	@Override
 	public DbQueryStatus findSongById(String songId) {
 		try {	     	
@@ -70,7 +80,13 @@ public class SongDalImpl implements SongDal {
 		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
 		}
 	}
-
+	
+	/**
+	* Finds and returns song title of song with id songId if it exists, otherwise responds with 
+	* status not found
+	* @param  songId  the song id of the song with the wanted song title
+	* @return  DbQueryStatus with song title, server response message and status of operation
+	*/
 	@Override
 	public DbQueryStatus getSongTitleById(String songId) {
 		try {	     	
@@ -91,7 +107,12 @@ public class SongDalImpl implements SongDal {
 		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
 		}
 	}
-
+	
+	/**
+	* Finds and deletes song with id songId if it exists, otherwise responds with status not found
+	* @param  songId  the song id of the song to be deleted
+	* @return  DbQueryStatus with server response message and status of operation
+	*/
 	@Override
 	public DbQueryStatus deleteSongById(String songId) {
 		try {	     	
@@ -136,6 +157,12 @@ public class SongDalImpl implements SongDal {
 		}
 	}
 
+	/**
+	* Increments or decrements the favorite count of song with id songId
+	* @param  songId  id of the song whos favorite count to be updated
+	* @param  shouldDecrement  Boolean specifying whether to increment or decrement
+	* @return  DbQueryStatus containing server response message and status of operation
+	*/
 	@Override
 	public DbQueryStatus updateSongFavouritesCount(String songId, boolean shouldDecrement) {
 		try {	     	
