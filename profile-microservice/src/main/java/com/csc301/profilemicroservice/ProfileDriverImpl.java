@@ -1,17 +1,32 @@
 package com.csc301.profilemicroservice;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.json.JSONObject;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.springframework.stereotype.Repository;
 
+import okhttp3.Call;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.Values;
+import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.Record;
 
 @Repository
 public class ProfileDriverImpl implements ProfileDriver {
 
 	Driver driver = ProfileMicroserviceApplication.driver;
+	OkHttpClient client = new OkHttpClient();
 
 	/**
 	* Initlaize Profile Db
@@ -125,15 +140,83 @@ public class ProfileDriverImpl implements ProfileDriver {
 		     return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
 		}
 	}
+	
+	private String getSongTitle(String songId) throws Exception {
+		HttpUrl.Builder urlBuilder = HttpUrl.parse("http://localhost:3001" + "/getSongTitleById/" + songId).newBuilder();
+		String url = urlBuilder.build().toString();
+
+		Request request = new Request.Builder()
+				.url(url)
+				.method("GET", null)
+				.build();
+
+		Call call = client.newCall(request);
+		Response responseFromSongMs = null;
+
+		try {
+			responseFromSongMs = call.execute();
+			String body = responseFromSongMs.body().string();
+			responseFromSongMs.close();
+			JSONObject deserialized = new JSONObject(body);
+	        String status = deserialized.getString("status");
+			if(status.toString().equals("OK"))
+				return deserialized.getString("data");
+			throw new Exception();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
 
 	/**
 	* Returns a list of all the songs that every friend of username likes inside dbquerydata
 	* @param  userName  a string of the desired username (the user following)
-	* @return  DbQueryStatus with OK status if operation is success and all songs in the playlist of every user userName follows, and not OK otherwise
+	* @return  DbQueryStatus with Not OK status if there is no profile with userName, otherwise OK status as long as operation succeeds
 	*/
 	@Override
 	public DbQueryStatus getAllSongFriendsLike(String userName) {
-			
-		return null;
+		try {
+			try (Session session = ProfileMicroserviceApplication.driver.session()){
+				try (Transaction tx = session.beginTransaction()) {   	
+					int userNameResult = tx.run("MATCH (n:profile {userName: $x}) RETURN n" , Values.parameters("x", userName )).list().size();
+
+					if (userNameResult == 0){
+						return new DbQueryStatus("User does not exist", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);   
+					}
+						
+					StatementResult songsResult = tx.run("MATCH (:profile {userName: $x})-[:follows]->(p:profile)-[:created]->(:playlist)-[:includes]->(s:song) RETURN p.userName,s.songId", Values.parameters("x", userName));
+					
+					HashMap<String, ArrayList<String>> data = new HashMap<String, ArrayList<String>>();
+					if(songsResult.hasNext()) {
+						List<Record> songsList = songsResult.list(); 
+						for(Record rec : songsList) {
+							String user = rec.get("p.userName").asString();
+							String song = rec.get("s.songId").asString();
+							
+							String songTitle = "";
+							try {
+								songTitle = getSongTitle(song);
+							} catch (Exception e) {
+								return new DbQueryStatus("Song does not exist", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);
+							}
+							
+							ArrayList<String> arr = new ArrayList<String>();
+							
+							if(data.containsKey(user)) arr = data.get(user);
+							arr.add(songTitle);
+							data.put(user, arr);
+						}
+					}
+					DbQueryStatus success = new DbQueryStatus("OK", DbQueryExecResult.QUERY_OK);
+					success.setData(data);
+					tx.success();
+					session.close();
+					return success;
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		    return new DbQueryStatus("Not OK", DbQueryExecResult.QUERY_ERROR_GENERIC);
+		}
 	}
 }

@@ -104,7 +104,7 @@ public class SongController {
 			@RequestParam("shouldDecrement") String shouldDecrement, HttpServletRequest request) {
 
 		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("data", String.format("PUT %s", Utils.getUrl(request)));
+		response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 		if(!shouldDecrement.equals("true") && !shouldDecrement.equals("false")) {
 			response = Utils.setResponseStatus(response, DbQueryExecResult.QUERY_ERROR_GENERIC, null);
 			response.put("message", "Bad");
