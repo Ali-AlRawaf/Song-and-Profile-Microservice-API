@@ -28,7 +28,12 @@ public class SongController {
 		this.songDal = songDal;
 	}
 
-	
+	/**
+	* Return song document of song with id songId
+	* @param  songId  id of the wanted song
+	* @param  request  http API request
+	* @return  DbQueryStatus containing the song, server response message and status of operation
+	*/
 	@RequestMapping(value = "/getSongById/{songId}", method = RequestMethod.GET)
 	public @ResponseBody Map<String, Object> getSongById(@PathVariable("songId") String songId,
 			HttpServletRequest request) {
@@ -44,7 +49,12 @@ public class SongController {
 		return response;
 	}
 
-	
+	/**
+	* Return song title of song with id songId
+	* @param  songId  id of the song with wanted song title
+	* @param  request  http API request
+	* @return  DbQueryStatus containing the song title, server response message and status of operation
+	*/
 	@RequestMapping(value = "/getSongTitleById/{songId}", method = RequestMethod.GET)
 	public @ResponseBody Map<String, Object> getSongTitleById(@PathVariable("songId") String songId,
 			HttpServletRequest request) {
@@ -60,7 +70,12 @@ public class SongController {
 		return response;
 	}
 
-	
+	/**
+	* Deletes song with id songId
+	* @param  songId  id of the song to be deleted
+	* @param  request  http API request
+	* @return  DbQueryStatus containing server response message and status of operation
+	*/
 	@RequestMapping(value = "/deleteSongById/{songId}", method = RequestMethod.DELETE)
 	public @ResponseBody Map<String, Object> deleteSongById(@PathVariable("songId") String songId,
 			HttpServletRequest request) {
@@ -76,7 +91,12 @@ public class SongController {
 		return response;
 	}
 
-	
+	/**
+	* Adds song with parameters specified in params
+	* @param  params  a dictionary containing KEY_SONG_NAME, KEY_SONG_ARTIST_FULL_NAME, KEY_SONG_ALBUM
+	* @param  request  http API request
+	* @return  DbQueryStatus containing song document, server response message and status of operation
+	*/
 	@RequestMapping(value = "/addSong", method = RequestMethod.POST)
 	public @ResponseBody Map<String, Object> addSong(@RequestParam Map<String, String> params,
 			HttpServletRequest request) {
@@ -99,6 +119,13 @@ public class SongController {
 		return response;
 	}
 	
+	/**
+	* Increments or decrements the favorite count of song with id songId
+	* @param  songId  id of the song whos favorite count to be updated
+	* @param  shouldDecrement  Boolean specifying whether to increment or decrement
+	* @param  request  http API request
+	* @return  DbQueryStatus containing server response message and status of operation
+	*/
 	@RequestMapping(value = "/updateSongFavouritesCount/{songId}", method = RequestMethod.PUT)
 	public @ResponseBody Map<String, Object> updateFavouritesCount(@PathVariable("songId") String songId,
 			@RequestParam("shouldDecrement") String shouldDecrement, HttpServletRequest request) {

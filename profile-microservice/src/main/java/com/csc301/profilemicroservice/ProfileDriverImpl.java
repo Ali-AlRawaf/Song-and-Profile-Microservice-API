@@ -141,6 +141,11 @@ public class ProfileDriverImpl implements ProfileDriver {
 		}
 	}
 	
+	/**
+	* Return title of song with songId by calling getSongTitleById API from Song Microservice
+	* @param  songId  the songid of the song whos title is wanted
+	* @return  String with title of song
+	*/
 	private String getSongTitle(String songId) throws Exception {
 		HttpUrl.Builder urlBuilder = HttpUrl.parse("http://localhost:3001" + "/getSongTitleById/" + songId).newBuilder();
 		String url = urlBuilder.build().toString();
